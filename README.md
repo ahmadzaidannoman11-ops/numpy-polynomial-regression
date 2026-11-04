@@ -88,15 +88,22 @@
 
 # Ridge Regression with California Housing Data
 
-1. **Dataset and features**
+1. **Load the dataset and choose features**
 
-   The model uses eight housing features as inputs and tries to predict the median house value.
+   Pandas loads the California housing data. The selected columns are the input features used by the model.
 
-2. **Weights and bias**
+2. **Separate inputs and target — \`X\` and \`y\`**
 
-   Each input feature has a weight. The model's prediction is \( \hat{y}=Xw+b \).
+   \`X\` contains the eight housing features. \`y\` contains \`median_house_value\`, the value the model tries to predict.
 
-3. **Regularized cost function**
+3. **Initialize weights and bias**
+
+   Each of the eight features gets a weight, while the bias is one scalar:
+   \[
+   \hat{y}=Xw+b
+   \]
+
+4. **Regularized cost function**
 
    \[
    J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
@@ -105,7 +112,7 @@
 
    The second term is L2 regularization. It penalizes large weights; the bias is not included in the penalty.
 
-4. **Gradients**
+5. **Gradients and gradient descent**
 
    \[
    \frac{\partial J}{\partial w}
@@ -115,25 +122,27 @@
    =\frac{\sum(Xw+b-y)}{m}
    \]
 
-   The extra \(\lambda w/m\) term comes from regularization.
+   The regularization term adds \(\lambda w/m\) to the weight gradient.
 
-5. **Feature scaling**
+6. **Feature scaling**
 
-   The mean and standard deviation are calculated from the training set, then reused for the test set:
+   The mean and standard deviation are calculated from the training features and then reused for the test features:
    \[
    x'=\frac{x-\mu_{\text{train}}}{\sigma_{\text{train}}}
    \]
 
-6. **Train/test split**
+7. **Train/test split**
 
-   The data is shuffled with a fixed seed and divided into 80% training data and 20% test data.
+   The data is shuffled with a fixed random seed and split into 80% training data and 20% test data.
 
-7. **Missing values**
+8. **Handle missing values**
 
-   Missing values in total_bedrooms are replaced with the median from the training set. The same median is used for the test set.
+   Missing values in \`total_bedrooms\` are replaced with the median calculated from the training set. That same median is used for the test set.
 
-8. **Target scaling and evaluation**
+9. **Scale the target, train, and evaluate**
 
-   The target is divided by 100,000 before training. The printed train and test values are costs, not accuracy scores. Predictions are also in units of 100,000 dollars, so multiply them by 100,000 to express them in dollars.
+   The target values are divided by 100,000 before training. The notebook prints the model parameters, test predictions, and cost on both the training and test sets.
+
+   The printed cost is **not accuracy**. Predictions are in units of 100,000 dollars, so multiply them by 100,000 to express them in dollars.
 
    **AI assistance note:** The notebook keeps the author's note identifying the missing-value handling section that was developed with AI assistance.
