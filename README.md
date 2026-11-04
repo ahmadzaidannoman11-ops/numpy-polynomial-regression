@@ -9,11 +9,11 @@ w = np.zeros(X.shape[1])
 b = 0.0
 ```
 
-There is one weight for each input feature. Since this dataset has two features, the model uses two weights:
+There is one weight for each input feature. Since this dataset has two features, the prediction is calculated like this:
 
-\[
-\hat{y}=w_1x_1+w_2x_2+b
-\]
+```text
+prediction = (weight_1 * feature_1) + (weight_2 * feature_2) + bias
+```
 
 ### Cost function
 
@@ -22,13 +22,13 @@ error = (X@w+b)-y
 cost = np.sum(error**2)/(2*m)
 ```
 
-The model first calculates the difference between its predictions and the real values. The cost is the average squared error, divided by 2 to make the derivative simpler:
+The error is the difference between a prediction and the real value. The cost combines the squared errors from all examples and divides by twice the number of examples:
 
-\[
-J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
-\]
+```text
+cost = sum((prediction - actual_value)**2) / (2 * number_of_examples)
+```
 
-A lower cost means the predictions are closer to the real values.
+A lower cost means the predictions are closer to the real values. The division by 2 also makes the derivative simpler.
 
 ### Gradients
 
@@ -39,11 +39,10 @@ Gb = np.sum(error)/m
 
 These calculate how the cost changes with each weight and with the bias. Gradient descent uses them to decide how to update the parameters.
 
-\[
-\frac{\partial J}{\partial w}=\frac{X^T(Xw+b-y)}{m},
-\qquad
-\frac{\partial J}{\partial b}=\frac{\sum(Xw+b-y)}{m}
-\]
+```text
+weight_gradient = (X_transposed @ error) / number_of_examples
+bias_gradient = sum(error) / number_of_examples
+```
 
 ### Z-score normalization
 
@@ -55,9 +54,9 @@ x_s = (X - mu) / sig
 
 This scales each feature using its mean and standard deviation:
 
-\[
-x'=\frac{x-\mu}{\sigma}
-\]
+```text
+scaled_feature = (feature - mean) / standard_deviation
+```
 
 It puts the features on a more similar scale, which can help gradient descent.
 
@@ -99,11 +98,11 @@ w = np.zeros(X.shape[1])
 b = 0.0
 ```
 
-Each feature gets its own weight, while the bias is one number. The model uses them to calculate a linear score:
+Each feature gets its own weight, while the bias is one number. The model first calculates a linear score:
 
-\[
-z=Xw+b
-\]
+```text
+score = (feature_1 * weight_1) + ... + (feature_4 * weight_4) + bias
+```
 
 ### Sigmoid function
 
@@ -113,9 +112,9 @@ f = 1/(1+np.exp(-z))
 
 The sigmoid converts the linear score into a value between 0 and 1. The model uses this value as the predicted probability for class 1.
 
-\[
-f(z)=\frac{1}{1+e^{-z}}
-\]
+```text
+probability = 1 / (1 + exp(-score))
+```
 
 ### Binary cross-entropy cost
 
@@ -125,10 +124,12 @@ cost = -np.sum(y*np.log(f)+(1-y)*np.log(1-f))/m
 
 This cost measures how well the predicted probabilities match the actual class labels. It penalizes confident predictions that are wrong.
 
-\[
-J=-\frac{1}{m}\sum_{i=1}^{m}
-\left[y^{(i)}\log(f^{(i)})+(1-y^{(i)})\log(1-f^{(i)})\right]
-\]
+```text
+cost = -average(
+    actual_class * log(predicted_probability)
+    + (1 - actual_class) * log(1 - predicted_probability)
+)
+```
 
 ### Gradients and parameter updates
 
@@ -188,10 +189,10 @@ cost = np.sum(error**2)/(2*m) + np.sum(w**2)*(lambda_reg/(2*m))
 
 The first part measures squared prediction errors. The second part is the L2 regularization penalty, which discourages very large weights. The bias is not included in the penalty.
 
-\[
-J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
-+\frac{\lambda}{2m}\sum_{j=1}^{n}w_j^2
-\]
+```text
+total_cost = prediction_error_cost + regularization_penalty
+regularization_penalty = (lambda_reg / (2 * number_of_examples)) * sum(weights**2)
+```
 
 ### Gradients
 
@@ -200,7 +201,7 @@ dj_dw = X.T@(error)/m + lambda_reg/m*w
 dj_db = np.sum(error)/m
 ```
 
-These calculate the derivatives used by gradient descent. The extra lambda_reg/m*w term in the weight gradient comes from L2 regularization.
+These calculate the derivatives used by gradient descent. The extra regularization term is added to the weight gradient, but not to the bias gradient.
 
 ### Feature scaling
 
@@ -212,6 +213,10 @@ X_test_scaled = (X_test - mu)/sigma
 ```
 
 The mean and standard deviation are calculated from the training features. The same values are then used to scale the test features, so information from the test set does not affect the scaling.
+
+```text
+scaled_feature = (feature - training_mean) / training_standard_deviation
+```
 
 ### Train/test split
 
