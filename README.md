@@ -1,148 +1,261 @@
 # Multiple Linear Regression with Gradient Descent
 
-1. **Weight initialization — `w = np.zeros(X.shape[1])`**
+This project compares multiple linear regression trained with gradient descent before and after Z-score normalization. The values are made for practice.
 
-   This creates one weight for each feature. With two features, the prediction is
-   \[
-   \hat{y}=w_1x_1+w_2x_2+b
-   \]
+### Weight initialization
 
-2. **Cost function — `CompCost(...)`**
+\`\`\`python
+w = np.zeros(X.shape[1])
+b = 0.0
+\`\`\`
 
-   It measures the squared difference between predictions and real values:
-   \[
-   J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
-   \]
-   The factor \(1/2\) makes the derivative simpler.
+There is one weight for each input feature. Since this dataset has two features, the model uses two weights:
 
-3. **Gradients — `Gw` and `Gb`**
+\[
+\hat{y}=w_1x_1+w_2x_2+b
+\]
 
-   They calculate how the cost changes with each weight and with the bias:
-   \[
-   \frac{\partial J}{\partial w}=\frac{X^T(Xw+b-y)}{m},
-   \qquad
-   \frac{\partial J}{\partial b}=\frac{\sum (Xw+b-y)}{m}
-   \]
-   Gradient descent uses these values to update the parameters.
+### Cost function
 
-4. **Z-score normalization**
+\`\`\`python
+error = (X@w+b)-y
+cost = np.sum(error**2)/(2*m)
+\`\`\`
 
-   \[
-   x' = \frac{x-\mu}{\sigma}
-   \]
-   It centers each feature around zero and scales it by its standard deviation, helping gradient descent work with features on more similar scales.
+The model first calculates the difference between its predictions and the real values. The cost is the average squared error, divided by 2 to make the derivative simpler:
 
-   **Data note:** These are practice values. The second feature is always one more than the first, so the two features contain redundant information.
+\[
+J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
+\]
+
+A lower cost means the predictions are closer to the real values.
+
+### Gradients
+
+\`\`\`python
+Gw = (X.T@error)/m
+Gb = np.sum(error)/m
+\`\`\`
+
+These calculate how the cost changes with each weight and with the bias. Gradient descent uses them to decide how to update the parameters.
+
+\[
+\frac{\partial J}{\partial w}=\frac{X^T(Xw+b-y)}{m},
+\qquad
+\frac{\partial J}{\partial b}=\frac{\sum(Xw+b-y)}{m}
+\]
+
+### Z-score normalization
+
+\`\`\`python
+mu = np.mean(X, axis=0)
+sig = np.std(X, axis=0)
+x_s = (X - mu) / sig
+\`\`\`
+
+This scales each feature using its mean and standard deviation:
+
+\[
+x'=\frac{x-\mu}{\sigma}
+\]
+
+It puts the features on a more similar scale, which can help gradient descent.
+
+**Data note:** The example values are made for practice. The second feature is always one more than the first, so the two features contain redundant information.
+
+---
 
 # Logistic Regression with Pandas and Real Data
 
-1. **Load the data — `pd.read_csv(...)`**
+This project uses the UCI Banknote Authentication dataset. It uses four measurements to predict the banknote class.
 
-   Pandas loads the UCI Banknote Authentication dataset and assigns names to its columns.
+### Loading the dataset
 
-2. **Separate inputs and labels — `X` and `y`**
+\`\`\`python
+df = pd.read_csv(
+    url,
+    header=None,
+    names=columns
+)
+\`\`\`
 
-   `X` contains the four measurements used as inputs. `y` contains the class that the model tries to predict.
+Pandas loads the data from the UCI dataset URL. The names argument assigns a name to each column because the file does not include a header row.
 
-3. **Initialize the parameters — `w` and `b`**
+### Inputs and labels
 
-   Each of the four features gets a weight. The model first calculates a linear score:
-   \[
-   z=Xw+b
-   \]
+\`\`\`python
+X = df[
+    ["variance", "skewness", "curtosis", "entropy"]
+].to_numpy(dtype=float)
+y = df["class"].to_numpy(dtype=float)
+\`\`\`
 
-4. **Sigmoid function**
+X contains the four measurements used by the model. y contains the class labels that the model tries to predict.
 
-   \[
-   f(z)=\frac{1}{1+e^{-z}}
-   \]
-   It converts the score into a probability between 0 and 1.
+### Weight and bias initialization
 
-5. **Binary cross-entropy cost**
+\`\`\`python
+w = np.zeros(X.shape[1])
+b = 0.0
+\`\`\`
 
-   \[
-   J=-\frac{1}{m}\sum_{i=1}^{m}
-   \left[y^{(i)}\log(f^{(i)})+(1-y^{(i)})\log(1-f^{(i)})\right]
-   \]
-   This measures how well the predicted probabilities match the true classes.
+Each feature gets its own weight, while the bias is one number. The model uses them to calculate a linear score:
 
-6. **Gradients**
+\[
+z=Xw+b
+\]
 
-   \[
-   \frac{\partial J}{\partial w}=\frac{X^T(f-y)}{m},
-   \qquad
-   \frac{\partial J}{\partial b}=\frac{\sum(f-y)}{m}
-   \]
-   These show how the cost changes when the weights or bias change.
+### Sigmoid function
 
-7. **Gradient descent update**
+\`\`\`python
+f = 1/(1+np.exp(-z))
+\`\`\`
 
-   \[
-   w := w-\alpha\frac{\partial J}{\partial w},
-   \qquad
-   b := b-\alpha\frac{\partial J}{\partial b}
-   \]
-   The parameters move in the direction that reduces the cost.
+The sigmoid converts the linear score into a value between 0 and 1. The model uses this value as the predicted probability for class 1.
 
-   **Note:** This code trains on the full dataset and prints training cost. It does not use a test split or calculate accuracy.
+\[
+f(z)=\frac{1}{1+e^{-z}}
+\]
+
+### Binary cross-entropy cost
+
+\`\`\`python
+cost = -np.sum(y*np.log(f)+(1-y)*np.log(1-f))/m
+\`\`\`
+
+This cost measures how well the predicted probabilities match the actual class labels. It penalizes confident predictions that are wrong.
+
+\[
+J=-\frac{1}{m}\sum_{i=1}^{m}
+\left[y^{(i)}\log(f^{(i)})+(1-y^{(i)})\log(1-f^{(i)})\right]
+\]
+
+### Gradients and parameter updates
+
+\`\`\`python
+dj_dw = X.T@(f-y)/m
+dj_db = np.sum(f-y)/m
+
+w = w-alpha*dj_dw
+b = b-alpha*dj_db
+\`\`\`
+
+The gradients show how the cost changes with the weights and bias. The update moves the parameters in the opposite direction of the gradients to reduce the cost. alpha controls the size of each update.
+
+**Note:** This code trains on the full dataset and prints the training cost. It does not split the data into training and test sets or calculate accuracy.
+
+---
 
 # Ridge Regression with California Housing Data
 
-1. **Load the dataset and choose features**
+This project uses eight housing features to predict median house values. It also uses L2 regularization.
 
-   Pandas loads the California housing data. The selected columns are the input features used by the model.
+### Loading the dataset and selecting features
 
-2. **Separate inputs and target — \`X\` and \`y\`**
+\`\`\`python
+url = "https://github.com/akmand/datasets/raw/refs/heads/main/california_housing.csv"
+df = pd.read_csv(url)
 
-   \`X\` contains the eight housing features. \`y\` contains \`median_house_value\`, the value the model tries to predict.
+columns = [
+    "longitude",
+    "latitude",
+    "housing_median_age",
+    "total_rooms",
+    "total_bedrooms",
+    "population",
+    "households",
+    "median_income"
+]
+\`\`\`
 
-3. **Initialize weights and bias**
+Pandas loads the California housing dataset. The selected columns are the features used as inputs to the model.
 
-   Each of the eight features gets a weight, while the bias is one scalar:
-   \[
-   \hat{y}=Xw+b
-   \]
+### Inputs and target
 
-4. **Regularized cost function**
+\`\`\`python
+X = df[columns].to_numpy(dtype=float)
+y = df["median_house_value"].to_numpy(dtype=float)
+\`\`\`
 
-   \[
-   J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
-   +\frac{\lambda}{2m}\sum_{j=1}^{n}w_j^2
-   \]
+X contains the eight input features. y contains the median house value that the model tries to predict.
 
-   The second term is L2 regularization. It penalizes large weights; the bias is not included in the penalty.
+### Regularized cost function
 
-5. **Gradients and gradient descent**
+\`\`\`python
+error = X@w+b-y
+cost = np.sum(error**2)/(2*m) + np.sum(w**2)*(lambda_reg/(2*m))
+\`\`\`
 
-   \[
-   \frac{\partial J}{\partial w}
-   =\frac{X^T(Xw+b-y)}{m}+\frac{\lambda}{m}w,
-   \qquad
-   \frac{\partial J}{\partial b}
-   =\frac{\sum(Xw+b-y)}{m}
-   \]
+The first part measures squared prediction errors. The second part is the L2 regularization penalty, which discourages very large weights. The bias is not included in the penalty.
 
-   The regularization term adds \(\lambda w/m\) to the weight gradient.
+\[
+J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
++\frac{\lambda}{2m}\sum_{j=1}^{n}w_j^2
+\]
 
-6. **Feature scaling**
+### Gradients
 
-   The mean and standard deviation are calculated from the training features and then reused for the test features:
-   \[
-   x'=\frac{x-\mu_{\text{train}}}{\sigma_{\text{train}}}
-   \]
+\`\`\`python
+dj_dw = X.T@(error)/m + lambda_reg/m*w
+dj_db = np.sum(error)/m
+\`\`\`
 
-7. **Train/test split**
+These calculate the derivatives used by gradient descent. The extra lambda_reg/m*w term in the weight gradient comes from L2 regularization.
 
-   The data is shuffled with a fixed random seed and split into 80% training data and 20% test data.
+### Feature scaling
 
-8. **Handle missing values**
+\`\`\`python
+mu = np.mean(X_train, axis=0)
+sigma = np.std(X_train, axis=0)
+X_train_scaled = (X_train - mu)/sigma
+X_test_scaled = (X_test - mu)/sigma
+\`\`\`
 
-   Missing values in \`total_bedrooms\` are replaced with the median calculated from the training set. That same median is used for the test set.
+The mean and standard deviation are calculated from the training features. The same values are then used to scale the test features, so information from the test set does not affect the scaling.
 
-9. **Scale the target, train, and evaluate**
+### Train/test split
 
-   The target values are divided by 100,000 before training. The notebook prints the model parameters, test predictions, and cost on both the training and test sets.
+\`\`\`python
+rng = np.random.default_rng(42)
+indices = rng.permutation(len(X))
+split = int(0.8*len(X))
+train = indices[:split]
+test = indices[split:]
+\`\`\`
 
-   The printed cost is **not accuracy**. Predictions are in units of 100,000 dollars, so multiply them by 100,000 to express them in dollars.
+The rows are shuffled using a fixed random seed and divided into 80% training data and 20% test data.
 
-   **AI assistance note:** The notebook keeps the author's note identifying the missing-value handling section that was developed with AI assistance.
+### Missing values in total_bedrooms
+
+\`\`\`python
+idx = columns.index("total_bedrooms")
+median = np.nanmedian(train_X[:, idx])
+
+train_X[np.isnan(train_X[:, idx]), idx] = median
+test_X[np.isnan(test_X[:, idx]), idx] = median
+\`\`\`
+
+Some values in total_bedrooms were missing. This replaces them with the median calculated from the training set. The same median is used for the test set.
+
+**AI assistance note:** I used AI to help with this missing-data section because I did not yet know how to handle missing values. The code comments in the notebook identify this part.
+
+### Target scaling, training, and evaluation
+
+\`\`\`python
+train_y_scaled = train_y / 100000
+test_y_scaled = test_y / 100000
+
+N_w, N_b = Gradient(
+    train_X_scaled, train_y_scaled, w, b,
+    alpha=0.05, num_iters=500, lambda_reg=1.0
+)
+\`\`\`
+
+The target values are divided by 100,000 before training. This puts them on a smaller scale. The model is trained using the scaled training data.
+
+\`\`\`python
+CostF(train_X_scaled, train_y_scaled, N_w, N_b, lambda_reg=1.0)
+CostF(test_X_scaled, test_y_scaled, N_w, N_b, lambda_reg=1.0)
+\`\`\`
+
+These calculate the cost on the training and test sets. Cost is **not accuracy**. The model's predictions are in units of 100,000 dollars, so multiply a prediction by 100,000 to express it in dollars.
