@@ -85,3 +85,55 @@
    The parameters move in the direction that reduces the cost.
 
    **Note:** This code trains on the full dataset and prints training cost. It does not use a test split or calculate accuracy.
+
+# Ridge Regression with California Housing Data
+
+1. **Dataset and features**
+
+   The model uses eight housing features as inputs and tries to predict the median house value.
+
+2. **Weights and bias**
+
+   Each input feature has a weight. The model's prediction is \( \hat{y}=Xw+b \).
+
+3. **Regularized cost function**
+
+   \[
+   J(w,b)=\frac{1}{2m}\sum_{i=1}^{m}(\hat{y}^{(i)}-y^{(i)})^2
+   +\frac{\lambda}{2m}\sum_{j=1}^{n}w_j^2
+   \]
+
+   The second term is L2 regularization. It penalizes large weights; the bias is not included in the penalty.
+
+4. **Gradients**
+
+   \[
+   \frac{\partial J}{\partial w}
+   =\frac{X^T(Xw+b-y)}{m}+\frac{\lambda}{m}w,
+   \qquad
+   \frac{\partial J}{\partial b}
+   =\frac{\sum(Xw+b-y)}{m}
+   \]
+
+   The extra \(\lambda w/m\) term comes from regularization.
+
+5. **Feature scaling**
+
+   The mean and standard deviation are calculated from the training set, then reused for the test set:
+   \[
+   x'=\frac{x-\mu_{\text{train}}}{\sigma_{\text{train}}}
+   \]
+
+6. **Train/test split**
+
+   The data is shuffled with a fixed seed and divided into 80% training data and 20% test data.
+
+7. **Missing values**
+
+   Missing values in total_bedrooms are replaced with the median from the training set. The same median is used for the test set.
+
+8. **Target scaling and evaluation**
+
+   The target is divided by 100,000 before training. The printed train and test values are costs, not accuracy scores. Predictions are also in units of 100,000 dollars, so multiply them by 100,000 to express them in dollars.
+
+   **AI assistance note:** The notebook keeps the author's note identifying the missing-value handling section that was developed with AI assistance.
