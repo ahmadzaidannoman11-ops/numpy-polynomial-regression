@@ -264,3 +264,118 @@ CostF(test_X_scaled, test_y_scaled, N_w, N_b, lambda_reg=1.0)
 ```
 
 These calculate the cost on the training and test sets. Cost is **not accuracy**. The model's predictions are in units of 100,000 dollars, so multiply a prediction by 100,000 to express it in dollars.
+
+---
+
+# California Housing Linear Regression with Scikit-Learn
+
+This project uses the California housing dataset from the Hands-On Machine Learning repository. It demonstrates preprocessing numerical and categorical features with Scikit-Learn before training a linear regression model.
+
+### Load the dataset and separate the target
+
+```python
+url = "https://raw.githubusercontent.com/ageron/handson-ml2/master/datasets/housing/housing.csv"
+df = pd.read_csv(url)
+
+X = df.drop(columns=["median_house_value"])
+y = df["median_house_value"]
+```
+
+Pandas loads the dataset. The target column is separated from the input features so the model does not use the answer as an input.
+
+### Split the data
+
+```python
+X_Tr, X_Te, y_Tr, y_Te = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=X["ocean_proximity"]
+)
+```
+
+This creates training and testing sets. The split uses 80% of the data for training and 20% for testing. Stratifying by `ocean_proximity` keeps its categories represented in both sets.
+
+### Separate categorical and numerical features
+
+```python
+X_Tr_cat = X_Tr[["ocean_proximity"]]
+X_Te_cat = X_Te[["ocean_proximity"]]
+
+X_Tr_num = X_Tr.drop(columns=["ocean_proximity"])
+X_Te_num = X_Te.drop(columns=["ocean_proximity"])
+```
+
+`ocean_proximity` contains categories, while the other columns are numerical. They need different preprocessing methods.
+
+### One-Hot Encoding
+
+```python
+encoder = OneHotEncoder(
+    handle_unknown="ignore",
+    sparse_output=False
+)
+
+X_Tr_cat_E = encoder.fit_transform(X_Tr_cat)
+X_Te_cat_E = encoder.transform(X_Te_cat)
+```
+
+One-Hot Encoding turns each category into a separate binary feature. The encoder learns the categories from the training data, then applies the same encoding to the test data. `handle_unknown="ignore"` prevents an unseen test category from causing an error.
+
+### Feature scaling
+
+```python
+scaler = StandardScaler()
+
+X_Tr_num_S = scaler.fit_transform(X_Tr_num)
+X_Te_num_S = scaler.transform(X_Te_num)
+```
+
+StandardScaler centers each numerical feature around zero and scales it using the training data's standard deviation. The same learned scaling is applied to the test data.
+
+### KNN imputation
+
+```python
+imputer = KNNImputer(
+    n_neighbors=5,
+    weights="distance"
+)
+
+X_Tr_num_I = imputer.fit_transform(X_Tr_num_S)
+X_Te_num_I = imputer.transform(X_Te_num_S)
+```
+
+KNNImputer fills missing numerical values using nearby rows. It considers the five nearest neighbors, and with `weights="distance"`, closer neighbors have more influence on the imputed value.
+
+### Combine the features
+
+```python
+X_Tr_final = np.concatenate(
+    [X_Tr_num_I, X_Tr_cat_E],
+    axis=1
+)
+
+X_Te_final = np.concatenate(
+    [X_Te_num_I, X_Te_cat_E],
+    axis=1
+)
+```
+
+The processed numerical features and encoded categorical features are joined side by side to create the final training and testing arrays.
+
+### Train and evaluate the model
+
+```python
+model = LinearRegression()
+model.fit(X_Tr_final, y_Tr)
+
+y_pred = model.predict(X_Te_final)
+
+mse = mean_squared_error(y_Te, y_pred)
+rmse = np.sqrt(mse)
+```
+
+LinearRegression learns from the processed training data. It then predicts house values for the test data.
+
+MSE is the average of the squared prediction errors. RMSE is the square root of MSE, so it is expressed in the same units as the target: dollars. Lower values indicate smaller prediction errors.
