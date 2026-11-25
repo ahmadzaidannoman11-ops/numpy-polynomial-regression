@@ -379,3 +379,84 @@ rmse = np.sqrt(mse)
 LinearRegression learns from the processed training data. It then predicts house values for the test data.
 
 MSE is the average of the squared prediction errors. RMSE is the square root of MSE, so it is expressed in the same units as the target: dollars. Lower values indicate smaller prediction errors.
+
+---
+
+# Multiple Linear Regression with Adam Optimizer
+
+This project uses the same small practice dataset as the gradient descent project, but replaces the basic parameter update with the Adam optimizer.
+
+### Adam initialization
+
+```python
+self.t = 0
+self.m = []
+self.v = []
+
+for p in self.params:
+  self.m.append(np.zeros_like(p,dtype=float))
+  self.v.append(np.zeros_like(p,dtype=float))
+```
+
+Adam keeps two moving averages for each parameter. The first, m, tracks the average gradient. The second, v, tracks the average squared gradient.
+
+### Update the moments
+
+```python
+self.m[i] = self.beta1*self.m[i]+(1-self.beta1)*grads[i]
+self.v[i] = self.beta2*self.v[i]+(1-self.beta2)*(grads[i]**2)
+```
+
+These are exponential moving averages. beta1 controls the first average, while beta2 controls the second. The squared gradients help Adam adapt the update size for each parameter.
+
+### Bias correction
+
+```python
+m_hat = self.m[i]/(1-self.beta1**self.t)
+v_hat = self.v[i]/(1-self.beta2**self.t)
+```
+
+The moving averages start at zero, so their early values are biased toward zero. These formulas correct that bias using the current iteration number, t.
+
+### Adam parameter update
+
+```python
+self.params[i] -= (
+    self.alpha*m_hat[i]/(
+        np.sqrt(v_hat[i])+self.ep
+    )
+)
+```
+
+Adam updates each parameter using both corrected averages. alpha is the learning rate, and ep is a small value added to keep the denominator from becoming zero.
+
+### Cost function and gradients
+
+```python
+error = X@w+b-y
+cost = np.sum(error**2)/(2*m)
+```
+
+This is the same squared-error cost used in the earlier multiple linear regression project.
+
+```python
+Gw = (X.T@error)/m
+Gb = np.sum(error)/m
+```
+
+These calculate the gradients for the weights and bias. Adam receives these gradients and adapts the update for each parameter.
+
+### Feature scaling and training
+
+```python
+mu = np.mean(X, axis=0)
+sig = np.std(X, axis=0)
+x_s = (X - mu) / sig
+w1,b1 = CompAdam(x_s,y,w,b,num_iters=1000)
+```
+
+Z-score normalization scales the input features before training. CompAdam then runs Adam for 1,000 iterations.
+
+**Data note:** The values are made for practice, not real-world data. The second feature is always one more than the first, so the features contain redundant information.
+
+**Code note:** The final print statement uses b rather than b1. Adam updates the same NumPy array stored in b, so b is changed in place. I kept the line as supplied.
